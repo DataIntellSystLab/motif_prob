@@ -14,7 +14,7 @@ Since the computational complexity of the formula is exponential, motif occurren
 In order to avoid issues with floating point operations when frequency/length ratios diverge, and to provide comprehensive estimations for relatively ill-posed configurations, we have further implemented the calculation of the expected number of strings and the motif's (stationary) occurrence probability at any text position, according to Robin et al. (2005) and Marschall & Rahmann (2008).
 
 # source code and binaries
-Each program consists of a unique source code file ("strperl1e" written in Perl 5.3 and "formlp03.cpp" written in ISO C++ v14.0, respectively) and no other dependencies/libraries are required. The programs were compiled under Strawberry Perl and Microsoft Visual C++ suites.
+Each program consists of a unique source code file ("strperl1e" written in Perl 5.3 and "formlp03.cpp" written in ISO C++ v14.0, respectively) and no other dependencies/libraries are required. The programs were compiled under Padre Perl and Microsoft Visual C++ suites.
 Executable files for MS Windows are available on this repository ("strperl1e.exe", "formlp3.exe").
 
 # input specifications
