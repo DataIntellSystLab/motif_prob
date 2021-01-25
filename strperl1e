@@ -1,0 +1,398 @@
+#!/usr/local/b*in/perl
+
+# STRperI1e PROGRAM
+# Program for calculating the probability distribution of the frequencies of a string within a sequence
+# That is, what is the probability that the string will appear 0, 1, 2, ..., k times within a sequence
+
+# In INPUT it wants a file of strings (one per line), preceded by the 4 bp frequencies (one per line)
+# in the format N.NN and the length of the sequence in the format NNNN
+# The input file name is fixed: "INPPERL.TXT"
+
+# In OUTPUTFIL2 print probability distributions
+
+# START
+
+  use strict;
+  use warnings;
+  
+# OUTPUT FILE
+# The input file name is fixed: "OUTPERL.TXT"
+    
+  my $Nomefile = "OUTPERL.TXT";
+  my $outfilename2 = $Nomefile;
+  unless (open(OUTPUTFIL2, ">$outfilename2"))
+         {print "Non posso aprire il file $outfilename2!\n";
+          exit;}
+
+# DECLARATION OF WHAT THE PROGRAM DOES
+  print "This program calculates the probability distribution (expressed as a percentage) of the frequencies of strings within a long sequence n \n";
+  print OUTPUTFIL2 "This program calculates the probability distribution (expressed as a percentage) of the frequencies of strings within a long sequence n \n";
+  print "That is, what is the probability that the string appears 0, 1, 2, ..., k times within a long sequence n \n";
+  print OUTPUTFIL2 "That is, what is the probability that the string appears 0, 1, 2, ..., k times within a long sequence n \n";
+      
+   
+# DECLARATION THAT ONLY NUCLEOTIDES ARE TREATED, OR ALPHABET = 4
+  print "This program only deals with DNA nucleotides (k = 4) A, C, G, T, which must be in UPPER CASE \n";
+  print OUTPUTFIL2 "This program only deals with DNA nucleotides (k = 4) A, C, G, T, which must be in UPPER CASE \n";
+
+  my $KAPPA = 4;
+  my $probA = 0;
+  my $probC = 0;
+  my $probG = 0;
+  my $probT = 0;
+  my $totprob = 0;
+  
+# PROBABILITY OF NUCLEOTIDES
+  sub routprob
+      {
+       print OUTPUTFIL2 "Prob A = $probA Prob C = $probC Prob G = $probG Prob T = $probT \n";
+       $totprob = $probA + $probC + $probG + $probT;
+       if ($totprob < 0.9999 or $totprob > 1.0001)
+          {
+           print "Sum of typed probabilities $totprob not equal to 1 \n";
+           exit;
+          }
+   print OUTPUTFIL2 "Sum of probabilities $totprob \n";
+      }
+
+
+# FILE DI INPUT
+  my $Nomeinp = "INPPERL.TXT";
+  chomp ($Nomeinp);
+  my $inputfilename = $Nomeinp;
+  chomp ($inputfilename);
+  unless (open(INPUTFILE, "$inputfilename"))
+         {print "Cannot open file $inputfilename!\n";
+          exit;}
+  my $num = 0;
+  my $seqdna = 0;
+  my $virstringa = 0;
+  my $lunghez = 0;
+  my $riga3 = 0;
+  my $numbp = 0;
+  
+  my $date1 = localtime();
+  print "$date1 \n";
+
+# READING PARAMETERS FROM FILE
+  while (<INPUTFILE>)
+        {
+         $num ++;
+         $seqdna = $_;
+         chomp ($seqdna);
+         if ($num == 1)
+            {
+             $probA = $seqdna;
+             $probA =~ s/\s//g;
+             goto rileggi;
+            }
+         if ($num == 2)
+            {
+             $probC = $seqdna;
+             $probC =~ s/\s//g;
+             goto rileggi;
+            }
+         if ($num == 3)
+            {
+             $probG = $seqdna;
+             $probG =~ s/\s//g;
+             goto rileggi;
+            }
+         if ($num == 4)
+            {
+             $probT = $seqdna;
+             $probT =~ s/\s//g;
+             &routprob($probA, $probC, $probG, $probT);
+             goto rileggi;
+            }
+         if ($num == 5)
+            {
+             $numbp = $seqdna;
+             $numbp =~ s/\s//g;
+             print OUTPUTFIL2 "Sequence lenght $numbp \n";
+             print OUTPUTFIL2 " \n";
+             goto leggifile;
+            }
+         print "More parameters than required error \n";
+rileggi:           
+        }
+        
+# READING STRING FROM FILE
+leggifile:
+  while (<INPUTFILE>)
+        {
+         $num ++;
+         $seqdna = $_;
+         chomp ($seqdna);
+
+         print OUTPUTFIL2 "Record taken $seqdna \n";
+         $lunghez = length($seqdna);
+         $virstringa = $seqdna;
+         $virstringa =~ s/\s//g;
+         $lunghez = length($virstringa);
+
+# CHECK THAT THE STRING IS NOT CLUMPABLE
+         my $inistr = substr ($virstringa, 0, 1);
+         my $finstr = substr ($virstringa, $lunghez - 1, 1);
+         print OUTPUTFIL2 "String $virstringa first character $inistr, last character $finstr \n";
+         if ($inistr eq $finstr)
+            {
+             print OUTPUTFIL2 "ATTENTION String $virstringa CLUMPABLE \n";
+            }
+     
+# CHECK THAT THE STRING IS LESS THAN THE SEQUENCE
+         if ($lunghez > $numbp)
+            {
+             print "Length of the string $seqdna less than the length of the sequence $numbp \n";
+             print OUTPUTFIL2 "Length of the string $seqdna less than the length of the sequence $numbp \ n";
+             exit;
+            }
+
+         &calpjmn($virstringa, $lunghez, $KAPPA, $probA, $probC, $probG, $probT, $numbp);                                     
+     
+        }  
+
+
+# CALCULATION OF FORMULA
+  sub calpjmn
+      {
+
+sevprobstr1:
+# CALCULATION OF THE PROBABILITY OF THE STRING P(S) 
+
+  $seqdna = $virstringa;
+
+# table containing the nucleotides of the sequence to be studied
+  my @tabprstr =();
+  my $tabprstr = 0;
+  @tabprstr = split('', $seqdna);
+  $tabprstr = join('', @tabprstr);
+  my $probstr = 1;
+  my $riga = 0;
+   
+# FOR iterates the string to calculate the product of the probabilities of its nucleotides P(S)
+  for ($riga=0;$riga<=$lunghez-1;$riga++)
+      {
+       if ($tabprstr[$riga] eq "A")                  {$probstr = $probstr * $probA}
+          elsif ($tabprstr[$riga] eq "C")            {$probstr = $probstr * $probC}
+          elsif ($tabprstr[$riga] eq "G")            {$probstr = $probstr * $probG}
+          elsif ($tabprstr[$riga] eq "T")            {$probstr = $probstr * $probT}
+          else  {
+                 print "ERROR FOUND NOT ALLOWED NUCLEOTIDE $tabprstr[$riga] at position $riga + 1 \n";
+                 print OUTPUTFIL2 "ERROR FOUND NOT ALLOWED NUCLEOTIDE $tabprstr[$riga] at position $riga + 1 \n";
+                exit;
+                }
+      }
+      
+   print OUTPUTFIL2 "String probability = $probstr \n";
+
+   my $limjei = 500;
+
+# TEST TO LIMIT THE CALCULATION OF J TO THE LENGTH M OF THE STRING
+  my $limjeic = int($numbp / $lunghez);
+  if ($limjeic < $limjei)
+          {
+           $limjei = $limjeic;
+          }
+  print OUTPUTFIL2 "String length = $lunghez \n";
+
+# CALCULATION OF THE AVERAGE FREQUENCY OF THE STRING (n-m + 1) * K ^ (-m)
+  my $frequenzam = ($numbp - $lunghez + 1) * $KAPPA **(-$lunghez);
+  $frequenzam = $frequenzam * 2;
+  if ($frequenzam > 500)
+          {
+           $limjei = $frequenzam;
+           print OUTPUTFIL2 "DOUBLE OF THE AVERAGE APPEARANCE = $limjei, WHEREAS I DO NOT MEET OVERFLOW, ANYWHERE I CALCULATE THE FREQUENCIES FROM 0 TO A MAXIMUM OF 500 \n";
+          }
+
+# CALCULATION S(0,n)
+# table of values of S(0,n)
+  my @tabSn =();
+  my $tabSn = 0;
+  my @tabSn3 =();
+  my $tabSn3 = 0;
+  my @tabSnR =();
+  my $tabSnR = 0;
+  $riga = 0;
+# probability P(S) ** m  
+  my $probint = $probstr * $KAPPA ** $lunghez;
+
+# FOR to fill the table tabSn from 0 to m - 1, which in this case equals $lengthz - 1
+  for ($riga=0;$riga<=$lunghez-1;$riga++)
+      {
+       $tabSn[$riga] = $KAPPA ** $riga;
+       $tabSn3[$riga] = $tabSn[$riga]  / ($KAPPA ** $riga);
+      }
+      
+# FOR to fill table tabSn from m-1 to n
+  for ($riga=$lunghez;$riga<=500;$riga++)
+      {
+       $tabSn[$riga] = $tabSn[$riga-1] * $KAPPA - $probint * $tabSn[$riga-$lunghez];
+       $tabSn3[$riga] = $tabSn[$riga] / ($KAPPA ** $riga);
+      }
+
+  $riga = 0;
+  $tabSnR[0] = 1;
+  
+# FOR to find R and nepsilon.
+# I have to take the minimum R
+# I set the maximum to 1. If the value of R is lower than the minimum stored in convenience, I store it.
+# at the end of the routine I take the minimum R, I subtract 1 from it and that will be nepsilon.
+
+  my $ERRE = 0;
+  my $NEpsilon = 0;
+  my $swerre = 0;
+
+# minimum value of R
+# tabular index of the minimum value of R
+  my $mintabSnR = 1;
+  my $minSnR = 1;
+  $tabSnR[$lunghez-1] = 1;
+  for ($riga=$lunghez;$riga<=499;$riga++)
+      {
+
+       $tabSnR[$riga] = $tabSn3[$riga+1] / $tabSn3[$riga];
+       my $intR = int($tabSnR[$riga] * 10**15);
+       $tabSnR[$riga] = $intR/10**15;
+       if ($tabSnR[$riga] < $minSnR)
+          {
+           $minSnR = $tabSnR[$riga];
+           $mintabSnR = $riga;
+          }
+       else
+          {
+           goto fineforR;
+          }
+      }      
+
+fineforR:
+  $ERRE = $minSnR;
+  $NEpsilon = $mintabSnR-2;
+  
+
+# CALCULATION OF P(S(0,NEpsilon)) 
+  my $PS0NE = $tabSn3[$NEpsilon];
+
+# CALCULATION OF COMBINATIONS for Js
+
+# In the numerator we have the product (n + j-jm) * ... * (n + j-jm-j + 1)
+# In the denominator j factorial
+# For example with n = 20000, j = 3, m = 6
+# In the numerator we have 19985 * 19984 * 19983 and in the denominator 3 * 2 * 1
+
+  my @COMB =();
+  my $COMB = 0;
+
+# number of occurrences of the string and denominator and $C below
+  my $jei = 2;
+  $COMB[0] = 1;
+  $COMB[1] = $numbp - $lunghez + 1;
+
+  my $finenum = 1; 
+  my $ininum = 0;
+  my $ferma = 500;
+  my $swferma = 0;
+  for ($jei=2;$jei<500;$jei++)
+      {
+     
+       if ($jei > 1)
+          {
+# end of numerator multiplications (19983 in the example)
+           $finenum = $numbp + $jei - $jei * $lunghez - $jei + 1;
+# start of multiplication in the numerator (19985 in the example)
+           $ininum = $numbp + $jei - $jei * $lunghez;
+          }
+
+        my $numerat = 1;
+# numerator calculation
+        for ($riga=$finenum;$riga<$ininum+1;$riga++)
+            {
+             $numerat = $numerat * $riga;
+            }      
+        $COMB[$jei] = $numerat;
+# if it overflows, I store the index and, in the final calculation, stop at that index
+        if ($numerat =~ /INF/i and $ferma == 500)
+           {
+            $ferma = $jei - 1;
+            $swferma = 1;
+           }
+        
+        my $denom = 1;
+# denominator calculation
+        for ($riga=1;$riga<$jei+1;$riga++)
+            {
+             $denom = $denom * $riga;
+            }      
+       $COMB[$jei] = $denom;
+       $COMB[$jei] = $numerat / $denom;
+       if ($swferma == 1)
+          {
+           goto fineforC;
+          }
+      }
+
+fineforC:      
+
+# CALCULATION OF R ^ (n-mj-nepsilon * (j + 1)) = x
+# becomes (n-mj-nepsilon * (j + 1)) * log10 (R) = log10 (x)
+
+  my @tabRele =();
+  my $tabRele = 0;
+
+  my $Rele = log(100)/log(10);
+  $Rele = log($ERRE)/log(10);
+
+# in the table $tabRele I put n-mj-nepsilon * (j + 1)) * log10 (R)
+  for ($jei=0;$jei<$ferma;$jei++)
+      {
+       $tabRele[$jei] = ($numbp - ($lunghez * $jei) - $NEpsilon * ($jei + 1)) * log($ERRE);
+# if we call y the value just calculated
+# we have y = log x
+# since log10 x = log x / log 10
+# setting log 10 = z we have
+# log10 = y / x
+# that is x = 10 ^ y / z
+       $tabRele[$jei] =  10 ** ($tabRele[$jei]/log(10));
+      }    
+      
+# final product of
+# P (S) = $probstr to be raised to jei
+# R raised to the power of $ tabRele ($jei)
+# P (S0, NEpsilon) = $PS0NE to be raised to jei
+# COMB
+
+  my @tabfor23 =();
+  my $tabfor23 = 0;
+  my $somprob = 0;
+
+  if ($ferma > $limjei)
+     {
+      $ferma = $limjei;
+     }
+
+  for ($jei=0;$jei<$ferma;$jei++)
+      {
+       my $uno = $probstr ** $jei;
+       my $due = $tabRele[$jei];
+       my $tre = $PS0NE ** ($jei + 1);
+       my $quattro = $COMB[$jei];
+       $tabfor23[$jei] = (($probstr ** $jei) * ($tabRele[$jei]) * ($PS0NE ** ($jei + 1)) * ($COMB[$jei])) * 100;
+       if ($tabfor23[$jei] > 0.000001)
+          {
+           print OUTPUTFIL2  "String $seqdna P($jei, $lunghez, $numbp) = $tabfor23[$jei] \n";
+          }
+       $somprob = $somprob + $tabfor23[$jei];
+      }    
+      
+    print OUTPUTFIL2 "Sum probability (expressed as a percentage) must be equal to approximately 100. In this case it is: $somprob \n";
+    if ($somprob < 99.99)
+       {
+        print OUTPUTFIL2 "WENT IN OVERFLOW for frequencies = $jei \n";
+       }
+    print OUTPUTFIL2 " \n";
+   }
+   
+  my $date2 = localtime();
+  print "$date2 \n";
+
+exit;
