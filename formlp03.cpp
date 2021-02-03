@@ -170,10 +170,10 @@ int ROUTCALCCOMB(int IK, long long int m, long long int n, long double maxld)
 
  static void show_usage(std::string name)
  {
-  std::cerr << "\nUsage: " << name << " <option(s)> SOURCES"
+  std::cerr << "\nUsage: " << name << " <option(s)>\n"
     << "Options:\n"
     << " -i INPUT_FILE -o OUTPUT_FILE\n"
-    << "Example: formlp03 -i INPCPLUSPLUS _unix.TXT -o OUTCPLUSPLUS.TXT\n\n"
+    << "Example: formlp03 -i INPCPLUSPLUS _unix.TXT -o OUTCPLUSPLUS.TXT\n"
     << std::endl;
  }
  
