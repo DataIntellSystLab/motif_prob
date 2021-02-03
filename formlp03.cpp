@@ -180,19 +180,18 @@ int ROUTCALCCOMB(int IK, long long int m, long long int n, long double maxld)
 int main(int argc, char* argv[])
 {
 
-  if (argc != 5) {
-    printf("\nWrong option configuration.");
-    show_usage(argv[0]);
-    return 1;
+  if (argc != 5) {	
+    printf("\nWrong option configuration.");	
+    show_usage(argv[0]);	
+    return 1;	
   }
   
   int c;
-  char *infile = NULL;
-  char *outfile = NULL;
-
-  while ((c = getopt (argc, argv, ":i:o")) != -1)
-    switch (c)
-    {
+  char *infile;
+  char *outfile;
+  
+  while ((c = getopt(argc, argv, "i:o:")) != -1)
+    switch (c) {
     case 'i':
       infile = optarg;
       break;
@@ -207,10 +206,8 @@ int main(int argc, char* argv[])
       printf("\nWrong option configuration.");
       show_usage(argv[0]);
       return 1;
-    default:
-      abort ();
     }
-
+  
   if(access( infile, F_OK ) != 0 ) {
     std::cerr << "\nInput file not found."
               << std::endl;
@@ -627,10 +624,3 @@ int main(int argc, char* argv[])
   
   return 0;
 }
-
-
-
-
-
-
-
