@@ -1,5 +1,5 @@
 # motif_prob
-Developed and maintained by: Roberto di Castro (robdic@libero.it); Luciano Prosperi (prosperi47@gmail.com); Mattia Prosperi (m.prosperi@ufl.edu). The software is released under the MIT license.
+Developed and maintained by: Roberto di Castro (robdic@libero.it); Luciano Prosperi (prosperi47@gmail.com); Mattia Prosperi (m.prosperi@ufl.edu); Simone Marini (smarini@ufl.edu). The software is released under the MIT license.
 
 # summary
 Identification of DNA/RNA motifs and quantification of their occurrences are important for the study of genetic diseases, gene evolution, transcription sites, and other biological mechanisms. Although several algorithms for motif characterization are available, most of them are quasi-exact, and correct p-value calculation remains challenging. Exact formulae for motif occurrence, under Bernoullian or Markovian models, have exponential complexity, thus can be cumbersome to be implemented efficiently, but approximations can be calculated with constant cost. Prosperi et al. (2012) provided an exact formula for counting the distribution of strings that do not overlap with themselves (i.e. non-clumpable), coupled with a mathematical demonstration of its validity, under both Bernoullian and Markovian models.
@@ -13,11 +13,13 @@ Since the computational complexity of the formula is exponential, motif occurren
 In order to avoid issues with floating point operations when frequency/length ratios diverge, and to provide comprehensive estimations for relatively ill-posed configurations, we have further implemented the calculation of the expected number of strings and the motif's (stationary) occurrence probability at any text position, according to Robin et al. (2005) and Marschall & Rahmann (2008).
 
 # source code and binaries
-Each program consists of a unique source code file ("strperl1e" written in Perl 5.3 and "formlp03.cpp" written in ISO C++ v14.0, respectively) and no other dependencies/libraries are required. The programs were compiled under Padre Perl and MinGW (32bit) C++ suites.
-Executable files for MS Windows are available on this repository ("strperl1e.exe", "formlp3.exe").
+Each program consists of a unique source code file ("strperl1e" written in Perl 5.3 and "formlp03.cpp" written in ISO C++ v14.0, respectively) and no other dependencies/libraries are required. 
+
+Executable files for MS Windows are available on this repository ("strperl1e.exe", "formlp3.exe"). The programs were compiled under Padre Perl and MinGW (32bit) C++ suites.
+Binaries for UNIX are also available on the repository, along with the Makefile for the C++ version (using g++ compiler). The Perl script can be invoked directly without compilation.
 
 # input specifications
-A single input file (named INPPERL.TXT and INPCPLUSPLUS.TXT, which can be changed in the source code) where the first four lines include the relative nucleotide frequencies in the reference genome sequence, the fifth line is the length of the genome, and then each of all the following lines contains a motif (only ACGT characters allowed).
+A single input file (named INPPERL.TXT and INPCPLUSPLUS.TXT, which can be changed in the source code, or arbitrarily chosen with "-i" and "-o" as command line arguments to the C++ version) where the first four lines include the relative nucleotide frequencies in the reference genome sequence, the fifth line is the length of the genome, and then each of all the following lines contains a motif (only ACGT characters allowed). Please note that the C++ version requires the input file to be formatted with UNIX eol.
 
 Example:
 
