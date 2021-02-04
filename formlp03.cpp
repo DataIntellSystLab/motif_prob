@@ -173,22 +173,22 @@ int ROUTCALCCOMB(int IK, long long int m, long long int n, long double maxld)
   std::cerr << "\nUsage: " << name << " <option(s)>\n"
     << "Options:\n"
     << " -i INPUT_FILE -o OUTPUT_FILE\n"
-    << "Example: formlp03 -i INPCPLUSPLUS _unix.TXT -o OUTCPLUSPLUS.TXT\n"
+    << "Example: formlp03 -i INPCPLUSPLUS_unix.TXT -o OUTCPLUSPLUS.TXT\n"
     << std::endl;
  }
  
 int main(int argc, char* argv[])
 {
 
-  if (argc != 5) {	
-    printf("\nWrong option configuration.");	
-    show_usage(argv[0]);	
-    return 1;	
-  }
+  // if (argc != 5) {	
+  //   printf("\nWrong option configuration.");	
+  //   show_usage(argv[0]);	
+  //   return 1;	
+  // }
   
   int c;
-  char *infile;
-  char *outfile;
+  char *infile = NULL;
+  char *outfile = NULL;
   
   while ((c = getopt(argc, argv, "i:o:")) != -1)
     switch (c) {
@@ -208,15 +208,21 @@ int main(int argc, char* argv[])
       return 1;
     }
   
-  if(access( infile, F_OK ) != 0 ) {
-    std::cerr << "\nInput file not found."
+  string nomefilein="INPCPLUSPLUS_unix.TXT";
+  if(infile == NULL) {
+    std::cerr << "\nInput file not specificed, proceeding with default one\n"
+              << nomefilein
               << std::endl;
-    show_usage(argv[0]);
-    return 1;
-  }
-
-  string nomefilein;
-  nomefilein.assign(infile);
+  }else{
+    if(access( infile, F_OK ) != 0 ) {
+      std::cerr << "\nInput file not found."
+                << std::endl;
+      show_usage(argv[0]);
+      return 1;
+    }
+    
+    nomefilein.assign(infile);
+    }
 
   long double  minSR,PS0NE,SOMF,PAR1,PAR2,PAR3,PAR4;
   float fpa,fpc,fpg,fpt,fptot;
@@ -299,8 +305,14 @@ int main(int argc, char* argv[])
         }
       }
   PROSEGUI:
-  string nomefileout;
-  nomefileout.assign(outfile);
+  string nomefileout="OUTCPLUSPLUS.TXT";
+  if(outfile == NULL) {
+    std::cerr << "\nOutput file not specificed, proceeding with default one\n"
+              << nomefileout
+              << std::endl;
+  } else{
+    nomefileout.assign(outfile);
+    }
   fstream stat(nomefileout,fstream::out);
   
   if (swerrp==1)
