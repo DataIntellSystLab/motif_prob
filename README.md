@@ -55,7 +55,7 @@ GCACTGC
 CGGTCAAA
 ```
 ## Perl
-A single input file (named INPPERL.TXT and INPCPLUSPLUS.TXT, which can be changed in the source code) where the first four lines include the relative nucleotide frequencies in the reference genome sequence, the fifth line is the length of the genome, and then each of all the following lines contains a motif (only ACGT characters allowed).
+A single input file (named INPPERL.TXT, which can be changed in the source code) where the first four lines include the relative nucleotide frequencies in the reference genome sequence, the fifth line is the length of the genome, and then each of all the following lines contains a motif (only ACGT characters allowed).
 
 Example of Perl input file:
 ```
