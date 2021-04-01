@@ -45,8 +45,12 @@ consider standard (A, C, G, T) characters.
 ```
 
 ### Examples:
+User adds genome file (to be used to calculated the nucleotide frequencies, and length):
 ```
-formlp03 -i INPCPLUSPLUS_unix.TXT -o OUTCPLUSPLUS.TXT -f mygenom.fasta
+formlp03 -i INPCPLUSPLUS_unix.TXT -o OUTCPLUSPLUS.TXT -f mygenome.fasta
+```
+User inputs nucleotide frequencies and genome length from command line:
+```
 formlp03 -i INPCPLUSPLUS_unix.TXT -o OUTCPLUSPLUS.TXT -a 0.1 -c 0.3 -g 0.1 -t 0.5 -n 100000
 ```
 
