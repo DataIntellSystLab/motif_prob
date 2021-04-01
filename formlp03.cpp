@@ -16,12 +16,12 @@
 
 using namespace std;
 
-//variabili globali
+//global variables
 long double S0[500],S3[500],SR[500],COMB[5000],tabR[5000],tabF[5000];
 string tabmsg[4];
 
 
-//calcolo elemento ik-esimo di S0 e S3
+//calculating ik-th element of S0 and S3
  int ROUTCALCS3(int IK, long long int k, long long int m, long long int n, long double PB, long double maxld)
  {
    long double limovflw1,limovflw2;
@@ -80,7 +80,7 @@ string tabmsg[4];
   }
 
 
-// calcolo potenze dell'ik-esimo elemento di tabR
+// calculating tabR ik-th element power
 int ROUTCALCPOWR(int IK, long long int m, long long int n, long long int nepsilon, long double minSR, long double maxld)
 {
     long double E=2.71828182845904525536;
@@ -121,7 +121,7 @@ int ROUTCALCPOWR(int IK, long long int m, long long int n, long long int nepsilo
 }
 
 
-//calcolo dell'ik-esimo elemento di COMB
+//calcularing COMB ik-th element
 int ROUTCALCCOMB(int IK, long long int m, long long int n, long double maxld)
 {
   long double  numeratore,denominatore;
@@ -170,33 +170,61 @@ int ROUTCALCCOMB(int IK, long long int m, long long int n, long double maxld)
 
  static void show_usage(std::string name)
  {
-  std::cerr << "\nUsage: " << name << " <option(s)>\n"
-    << "Options:\n"
-    << " -i INPUT_FILE -o OUTPUT_FILE\n"
-    << "Example: formlp03 -i INPCPLUSPLUS_unix.TXT -o OUTCPLUSPLUS.TXT\n"
-    << std::endl;
+   std::cerr << "\nUsage: " << name << " <option(s)>\n"
+     << "Options:\n"
+     << " -i INPUT_FILE -o OUTPUT_FILE {-f GENOME_FILE | -a freq_a -c freq_c -g freq_g -t freq_t -n genome_length}\n"
+     << "-i input file\n"
+     << "-o output file\n"
+     << "-a A frequency\n"
+     << "-c C frequency\n"
+     << "-g G frequency\n"
+     << "-t T frequency\n"
+     << "-n total genome length\n"
+     << "-f genome file. If specfied, nucleotide frequencies will be calculated on this file, and other options will be ignored.\n"
+     << "   Fasta format. Note that the total genome length will be calculated on the fasta full sequence lenght, while nucleotide\n"
+     << "   frequencies will only consider (A, C, G, T) characters.\n"
+     << "Examples:\n formlp03 -i INPCPLUSPLUS_unix.TXT -o OUTCPLUSPLUS.TXT -f mygenom.fasta\n formlp03 -i INPCPLUSPLUS_unix.TXT -o OUTCPLUSPLUS.TXT -a 0.1 -c 0.3 -g 0.1 -t 0.5 -n 100000"
+     << std::endl;
  }
  
+
 int main(int argc, char* argv[])
 {
-
-  // if (argc != 5) {	
-  //   printf("\nWrong option configuration.");	
-  //   show_usage(argv[0]);	
-  //   return 1;	
-  // }
-  
   int c;
   char *infile = NULL;
   char *outfile = NULL;
+  char *genomefile = NULL;
+  long long int k,m,n,l,indminSR,nepsilon,jlim;  
+  long double pA,pC,pG,pT,pTOT,PS,PB,eps;
+  n = pA = pC = pG = pT = -1; // if user won't provide values, will be calculated from genome file
+  eps = 0.0001; // tolerance for probability sum check
   
-  while ((c = getopt(argc, argv, "i:o:")) != -1)
+  
+  while ((c = getopt(argc, argv, "i:o:a:c:g:t:n:f:")) != -1)
     switch (c) {
     case 'i':
       infile = optarg;
       break;
     case 'o':
       outfile = optarg;
+      break;
+    case 'a':
+      pA = stod(optarg);
+      break;
+    case 'c':
+      pC = stod(optarg);
+      break;
+    case 'g':
+      pG = stod(optarg);
+      break;
+    case 't':
+      pT = stod(optarg);
+      break;
+    case 'n':
+      n = stoll(optarg);
+      break;
+    case 'f':
+      genomefile = optarg;
       break;
     case '?':
       printf("\nWrong option configuration.");
@@ -208,9 +236,69 @@ int main(int argc, char* argv[])
       return 1;
     }
   
-  string nomefilein="INPCPLUSPLUS_unix.TXT";
-  if(infile == NULL) {
-    std::cerr << "\nInput file not specificed, proceeding with default one\n"
+ 
+  pTOT=pA+pC+pG+pT;
+
+  if(genomefile != NULL){	// option -f present, calculate frequencies from provided genome fasta file
+    if(access( genomefile, F_OK ) != 0 ) {
+      std::cerr << "\nGenome file not found. Genome file searched: "
+                << genomefile
+                << std::endl;
+      show_usage(argv[0]);
+      return 1;
+    }
+    else{
+      string nomegenomefile = genomefile;
+      fstream ginp(nomegenomefile,fstream::in);
+    
+      std::string seq;
+      unordered_map<char, unsigned long long int> Freqs; 
+      n=0; 
+      while(getline(ginp, seq)){
+        if(seq.at(0) != '>'){
+          std::transform(seq.begin(), seq.end(), seq.begin(), ::toupper);
+          n+=seq.length(); 
+            for (int i = 0; seq[i]; i++){
+            if (Freqs.find(seq[i]) == Freqs.end()){
+              Freqs.insert(make_pair(seq[i], 1));
+            }
+            else{
+              Freqs[seq[i]]++;          
+            }
+          }
+        }
+      }
+      std::cerr << "Counted in genome file " << genomefile << std::endl;        
+      for (auto& it : Freqs) {
+        std::cerr << it.first << " = " << it.second << std::endl;  
+      }
+      long long int total_standard_nucleotides = Freqs['A']+Freqs['C']+Freqs['G']+Freqs['T'];
+      pA=Freqs['A']/float(total_standard_nucleotides);
+      pC=Freqs['C']/float(total_standard_nucleotides);
+      pG=Freqs['G']/float(total_standard_nucleotides);
+      pT=Freqs['T']/float(total_standard_nucleotides);
+    }
+  }
+  else{
+    if(pTOT < 1-eps or pTOT > 1+eps or pA < 0 or pC < 0 or pG < 0 or pT < 0){
+      std::cerr << "\nProblem with the options. Sum of the nucleotide frequencies should be 1.\n"
+                << std::endl;
+      show_usage(argv[0]);
+      return 1;
+    }
+    
+    if(pA < 0 or pC < 0 or pG < 0 or pT < 0 or n < 0){
+      std::cerr << "\nProblem with the options. Probabilities and genome length should positive numbers.\n"
+                << std::endl;
+      show_usage(argv[0]);
+      return 1;
+    }
+
+  }
+
+  string nomefilein="INPCPLUSPLUS.TXT";
+  if(infile == NULL){
+    std::cerr << "\nInput file not specificed, proceeding with default one:\n"
               << nomefilein
               << std::endl;
   }else{
@@ -224,133 +312,29 @@ int main(int argc, char* argv[])
     nomefilein.assign(infile);
     }
 
-  long double  minSR,PS0NE,SOMF,PAR1,PAR2,PAR3,PAR4;
-  float fpa,fpc,fpg,fpt,fptot;
-  long double pA,pC,pG,pT,PS,PB,pTOT;
-  long double limite100;
-  int tappoparz, letture=0, stringheesatte=0, stringheanomale=0;
-  long long int k,m,n,l,indminSR,nepsilon,jlim;
-  long double  maxld;
-  maxld=numeric_limits<long double>::max();
-
-  
-  fstream finp(nomefilein,fstream::in);
-  string xrecord, stringa;
-  string xpa,xpc,xpg,xpt,xseq,x;
-  int swerrp=0, swerrs=0;
-  string msgerrp="";
-  string msgerrs="";
-  if (finp)
-     {
-       while(getline(finp,xrecord))
-       { stringa=xrecord;
-         letture++;
-         int lungrec=xrecord.length();
-         if (letture==1)
-            {
-              xpa=xrecord;
-              for (int y=0;y<lungrec;y++)
-              {
-                x=xrecord.substr(y,1);
-                if (x!="." &&  (x<"0" || x>"9") )
-                   {swerrp=1;msgerrp="Not numeric probabilities";}
-              }
-            }
-  
-            if (letture==2)
-            {
-              xpc=xrecord;
-              for (int y=0;y<lungrec;y++)
-              {
-                x=xrecord.substr(y,1);
-                if (x!="." &&  (x<"0" || x>"9") )
-                   {swerrp=1;msgerrp="Not numeric probabilities";}
-               }
-            }
-  
-            if (letture==3)
-            {
-              xpg=xrecord;
-              for (int y=0;y<lungrec;y++)
-              {
-                x=xrecord.substr(y,1);
-                if (x!="." &&  (x<"0" || x>"9") )
-                   {swerrp=1;msgerrp="Not numeric probabilities";}
-               }
-            }
-  
-            if (letture==4)
-            {
-              xpt=xrecord;
-              for (int y=0;y<lungrec;y++)
-              {
-                x=xrecord.substr(y,1);
-                if (x!="." &&  (x<"0" || x>"9") )
-                   {swerrp=1;msgerrp="Not numeric probabilities";}
-               }
-            }
-  
-            if (letture==5)
-            {
-              xseq=xrecord;
-              for (int y=0;y<lungrec;y++)
-              {
-                x=xrecord.substr(y,1);
-               if (x!="." &&  (x<"0" || x>"9") )
-                  {swerrs=1;msgerrs="Not numeric sequence length";}
-               }
-              goto PROSEGUI;
-            }
-  
-        }
-      }
-  PROSEGUI:
   string nomefileout="OUTCPLUSPLUS.TXT";
   if(outfile == NULL) {
-    std::cerr << "\nOutput file not specificed, proceeding with default one\n"
+    std::cerr << "\nOutput file not specificed, proceeding with default one:\n"
               << nomefileout
               << std::endl;
   } else{
     nomefileout.assign(outfile);
     }
+
   fstream stat(nomefileout,fstream::out);
-  
-  if (swerrp==1)
-      stat<<msgerrp<<endl;
-  if (swerrs==1)
-      stat<<msgerrs<<endl;
-  if (swerrp==1 || swerrs==1)
-  {
-     stat<<"**************************************"<<endl;
-     stat<<"* correct the data in the input file *"<<endl;
-     stat<<"**************************************"<<endl;
-     stat.close();
-     finp.close();
-     return 0;
-  }
-  fpa=stof(xpa);
-  fpc=stof(xpc);
-  fpg=stof(xpg);
-  fpt=stof(xpt);
+
+  long double  minSR,PS0NE,SOMF,PAR1,PAR2,PAR3,PAR4;
+  float fpa,fpc,fpg,fpt,fptot;
+
+  long double limite100;
+  int tappoparz, letture=0, stringheesatte=0, stringheanomale=0;
+  long double  maxld;
+  maxld=numeric_limits<long double>::max();
+  string xrecord, stringa;
+
+  fstream finp(nomefilein,fstream::in);
   k=4;
-  fptot=fpa+fpc+fpg+fpt;
-  if (fptot!=1)
-      {
-       stat<<"sum of probabilities not equal to 1"<<endl;
-       stat<<"**************************************"<<endl;
-       stat<<"* correct the data in the input file *"<<endl;
-       stat<<"**************************************"<<endl;
-       stat.close();
-       finp.close();
-       return 0;
-      }
-  
-  n=stoll(xseq);
-  pA=fpa;
-  pC=fpc;
-  pG=fpg;
-  pT=fpt;
-  pTOT=fptot;
+
   //INIZIO
   time_t start = time(0), stop;
   tappoparz=500;
@@ -428,7 +412,7 @@ int main(int argc, char* argv[])
          else
              stat<<"Clumped string .................. "<<"N"<<endl;
   
-       // CONTROLLOLUNGHEZZE:
+       // Check lenghts:
        if (m>n)
          {
            stat<<"***********************************"<<endl;
