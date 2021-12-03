@@ -92,6 +92,11 @@ CGGTCAAA
 * [MOTIF Search](https://www.genome.jp/tools/motif/)
 * [MolBiol motifs](https://molbiol-tools.ca/Motifs.htm)
 
+# Citation
+Prosperi, M., Marini, S. & Boucher, C. Fast and exact quantification of motif occurrences in biological sequences. BMC Bioinformatics 22, 445 (2021). https://doi.org/10.1186/s12859-021-04355-6
+
+Journal paper link: https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04355-6
+
 # References
 Marschall T, Rahmann S. Efficient exact motif discovery, Bioinformatics 2009;25:i356–i364.
 
